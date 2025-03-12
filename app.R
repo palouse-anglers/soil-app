@@ -85,7 +85,7 @@ ui <- page_sidebar(theme = bs_theme(version = 5, bootswatch = "flatly"),
       inputId = "depth",
       label = "Select Depth (inches):",
       choices = c("0/3","3/6","6/12"),
-      selected = "0/3",
+      selected = c("0/3","3/6","6/12"),
       multiple = TRUE,
       options = list(
       `live-search` = TRUE,
