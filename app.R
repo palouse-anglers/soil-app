@@ -7,6 +7,7 @@ library(leaflet)
 library(shinyWidgets)
 library(plotly)
 library(RColorBrewer)
+library(sf)
 library(geojsonsf)
  
 
