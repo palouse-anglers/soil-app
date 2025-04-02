@@ -12,6 +12,52 @@ library(tidyverse)
 load("data/soil_data2.RData")
 
 
+# Add Watersheds to soil sample points ------------------------------------
+columbia_huc12_url <- "http://142.93.92.104:8080/geoserver/Columbia/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Columbia:all_columbia_huc_12s&outputFormat=application/json"
+
+#https://docs.google.com/spreadsheets/d/17tCnA5fua0rBMP_vt0469ImyKHjlmDUb/edit?gid=1427031515#gid=1427031515
+
+soil_locations <- data.table::fread("../../../Downloads/Soil Sample Locations.xlsx - Sheet1.csv")
+
+
+# Convert GeoJSON to an sf object
+# drop geometry, we only need watershed names here
+columbia_huc12s <- geojson_sf(columbia_huc12_url) 
+
+sf_use_s2(FALSE)
+# Optionally look at how many:
+
+# Fix invalid geometries
+watersheds_fixed <- st_make_valid(columbia_huc12s)
+
+unique_sites <- 
+  soil_locations %>%
+  distinct(latitude,longitude,.keep_all = TRUE) %>%
+  tidyr::drop_na()
+
+sample_points_sf <- st_as_sf(unique_sites, coords = c("longitude", "latitude"), crs = 4326)
+
+
+points_with_watershed <- st_join(sample_points_sf, watersheds_fixed, join = st_within) %>%
+select(field_id,field_name,huc8_name,hc12_name,huc12)
+
+st_as_sf(points_with_watershed,coords = c("latitude" ,"longitude"),crs=4326) %>%
+sf::st_write(,dsn="../soil-app/data/soil_sample_locations_orig.shp",append=FALSE)
+
+# %>%
+#   mutate(
+#     Longitude = st_coordinates(.)[,1],
+#     Latitude  = st_coordinates(.)[,2]
+#   ) %>%
+#   #select(Longitude,Latitude,huc8_name,hc12_name,huc12) %>%
+#   st_drop_geometry()
+
+
+
+
+# New Soil Format March 2025 ----------------------------------------------
+
+#https://docs.google.com/spreadsheets/d/1Z2ykXJJ9NQb5Y34rYph1n1Uc7-zwmsNc/edit?gid=850439528#gid=850439528
 y2014_farm_names <- data.table::fread("../../../Downloads/2014 CCD Soil Test Data.xlsx - Sheet1.csv",
                                       na.strings = "") %>% 
   as_tibble() %>%
@@ -34,24 +80,87 @@ units <- new_soil_data %>%
 
 colnames(new_soil_data) <- ifelse(!is.na(units),paste0(var_names," (",units,")"),var_names)
 
-
+# TODO Missing Depth will be set to 0-3
 
 new_soil_data_long <- new_soil_data %>%
   select(-c(...11,...12,...13)) %>%
   filter(!is.na(Account)) %>%
-  mutate(across(c(`Start Depth (inches)`:`Soil Texture`),~as.numeric(.x))
-         )%>%
+  mutate(across(c(`Start Depth (inches)`:`Soil Texture`),~as.numeric(.x))) %>%
+  mutate(      
+         year=lubridate::year(DateSample),
+         depth=paste0(replace_na(`Start Depth (inches)`,0),"-",replace_na(`End Depth (inches)`,3))
+         ) %>%
   select(-`Price ($)`) %>%
   pivot_longer(
-    cols = -c(Account:'Lab ID',`DateSample`,'Client','Start Depth (inches)','End Depth (inches)'),   
+    cols = -c(Account:'Lab ID',`DateSample`,'Client',depth,year,'Start Depth (inches)','End Depth (inches)'),   
     names_to = "parameter",
     values_to = "result"
   ) %>%
   left_join(new_soil_lookup_table,by="parameter") %>%
   rename(field_id=`Field ID`)
 
+new_soil_data_long  %>%
+  cnt(depth)
+
+
+join_sites <- 
+unique_sites %>% 
+  mutate(field_id2=as.integer(field_id2),
+         field_id2=replace_na(field_id2,-99)) %>%
+  select(field_id_orig=field_id,everything())
+
+
+new_soil_data_long  %>%
+  filter(year==2013) %>%
+  cnt(field_id)
+
+# 12,13,14 missing
+new_soil_data_long  %>%
+  filter(year==2014) %>%
+  distinct(field_id) %>% 
+  mutate(
+    fixed_field_id = as.integer(str_extract(field_id, "(?<=-)[0-9]+"))) %>%
+  left_join(join_sites,by=c("fixed_field_id"="field_id2")) %>%
+  arrange(fixed_field_id) %>%
+  print(n=900)
+  
+# 13-2 North Pakistan    46.47005489	-118.0833141    
+# 44-2 Hillis            46.40194891	-117.8568815
+# 29-2 Poindexter        46.39550725	-117.9925975
+new_soil_data_long  %>%
+  filter(year==2015) %>%
+  distinct(field_id) %>% 
+  mutate(
+    fixed_field_id = as.integer(str_extract(field_id, "(?<=-)[0-9]+")),
+    fixed_field_id = ifelse(is.na(fixed_field_id),
+                            as.integer(str_extract(field_id,"\\d+")),
+                            fixed_field_id)
+                            ) %>%
+  left_join(join_sites,by=c("fixed_field_id"="field_id2")) %>%
+  arrange(fixed_field_id) %>%
+  print(n=900)
+
+
+
+control_site = ifelse(str_detect(field_id,"CONTROL"), "Y", NA_character_)
+
+field_id_mod <- case_when(
+  year %in% 2016 ~ paste0("16-",field_id),
+  year %in% 2017 ~ paste0("17-",field_id),
+  # NO for 18
+)
+
 
 # TODO Poindexter 29 (missing), 29-1,29-2,29-01 (missing) 29-0 (missing)
+# Will assume  13-29 is = 29-1  Poindexter 46.39547 -117.9928
+
+# TODO 2016 breaks. There is no leading 16- so the site 13-1 is not site 1 as
+# is true in other years
+
+# TODO Need Control SITE Coords, currently same as regular field
+
+# TODO Alphabet fields in 2019 like D02 H02 J02 are these all "2" Gwinn ?
+
 yr2013_table <- tibble(
 field_id = c("13-14","13-15","13-11","13-74","13-49","13-20","13-25","13-61","13-29"),
 field_name=c("control_native_site","Sheep Camp","Brown","control_native_site",
@@ -69,36 +178,6 @@ yr2014_table <- tibble(
                                                                                  
 
 
-
-columbia_huc12_url <- "http://142.93.92.104:8080/geoserver/Columbia/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Columbia:all_columbia_huc_12s&outputFormat=application/json"
-
-# Convert GeoJSON to an sf object
-# drop geometry, we only need watershed names here
-columbia_huc12s <- geojson_sf(columbia_huc12_url) 
-
-sf_use_s2(FALSE)
-# Optionally look at how many:
-
-# Fix invalid geometries
-watersheds_fixed <- st_make_valid(columbia_huc12s)
-
-unique_sites <- 
-  soil_data2 %>%
-  distinct(Latitude,Longitude) %>%
-  tidyr::drop_na()
-
-
-
-sample_points_sf <- st_as_sf(unique_sites, coords = c("Longitude", "Latitude"), crs = 4326)
-
-
-points_with_watershed <- st_join(sample_points_sf, watersheds_fixed, join = st_within) %>%
-  mutate(
-    Longitude = st_coordinates(.)[,1],
-    Latitude  = st_coordinates(.)[,2]
-  ) %>%
-  select(Longitude,Latitude,huc8_name,hc12_name,huc12) %>%
-  st_drop_geometry()
 
 
 
@@ -166,8 +245,7 @@ distinct_soil_locations <- soil_data_with_huc12_type %>%
   
 
 
-  st_as_sf(distinct_soil_locations,coords = c("latitude" ,"longitude"),crs=4326) %>%
-  sf::st_write(,dsn="../soil-app/data/soil_sample_locations.shp")
+
 
 # Historical Soil Data- modeled from open meteo API
   
