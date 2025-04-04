@@ -46,7 +46,13 @@ compare_module_ui <- function(id) {
         
         )
     ),
-    
+    shinyWidgets::switchInput(
+      inputId = ns("only_with_coords"),
+      label = "Has Coordinates",
+      onLabel = "Yes", offLabel = "All",
+      value = TRUE,   
+      size = "small"
+    ),
     pickerInput(
       inputId = ns("selected_fields"),
       label = "Select Fields to Compare:",

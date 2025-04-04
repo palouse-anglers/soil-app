@@ -25,10 +25,20 @@ compare_module_server <- function(id, data) {
        # req(input$sample_depth)
        # req(input$input$watershed)
                    
-      data %>%
-         filter(year %in% input$year) %>%
-         filter(depth %in% input$sample_depth) %>%
-         filter(hc12_name %in% input$watershed)
+      if (isTRUE(input$only_with_coords)) {
+        
+        data %>%
+        filter(!is.na(latitude), !is.na(longitude))
+        
+        }
+        
+      data
+        
+         #filter(year %in% input$year) %>%
+         #filter(depth %in% input$sample_depth) %>%
+         #filter(hc12_name %in% input$watershed)
+        
+        
    
     })
     
@@ -68,9 +78,16 @@ compare_module_server <- function(id, data) {
     
     # param
     observe({
+      
+      ppm <-  data %>% 
+        filter(str_detect(parameter,"ppm")) %>%
+        pull(parameter) %>%
+        unique()
+      
       updatePickerInput(
         session, "parameter",
-        choices = sort(unique(data$parameter)) 
+        choices = sort(unique(data$parameter)),
+        selected= ppm
       )
     })
     
@@ -98,6 +115,9 @@ compare_module_server <- function(id, data) {
     filtered_data <- reactive({
       
       filtered_data_fields() %>%
+      filter(year %in% input$year) %>%
+      filter(depth %in% input$sample_depth) %>%
+      filter(hc12_name %in% input$watershed) %>%
       filter(full_field %in% input$selected_fields) %>%
       filter(parameter %in% input$parameter)
       

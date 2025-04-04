@@ -1,5 +1,5 @@
 
-map_module_server <- function(id) {
+map_module_server <- function(id,filtered_data) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
     
@@ -9,6 +9,22 @@ map_module_server <- function(id) {
     soil_points_url <- "http://142.93.92.104:8080/geoserver/Columbia/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Columbia%3Asoil_sample_locations_orig&maxFeatures=50&outputFormat=application%2Fjson"
     soil_points_sf <- geojsonsf::geojson_sf(soil_points_url) %>%
       dplyr::mutate(full_field = paste0(field_name, "-", field_id))
+    
+    
+    # Filtered locations with valid coordinates
+    
+    filtered_soil_points <- reactive({
+      req(filtered_data())
+      
+      filtered_data() %>%
+      filter(!is.na(latitude),!is.na(longitude)) %>%
+      distinct(latitude,longitude,field_name)
+      
+   
+    
+      })
+    
+    
     
     # Columbia County boundary
     columbia_county_boundary_url <- "https://services.arcgis.com/XG15cJAlne2vxtgt/ArcGIS/rest/services/WA_Columbia_Web_LiDAR/FeatureServer/1/query?where=1%3D1&f=geojson"
@@ -47,7 +63,17 @@ map_module_server <- function(id) {
         
         # Search Bar
         leaflet.extras::addSearchOSM() %>%
-        
+        addCircleMarkers(
+          data = filtered_soil_points(),
+          lng = ~longitude,
+          lat = ~latitude,
+          radius = 8,
+          fillColor = "blue",
+          color = "black",
+          weight = 1,
+          opacity = 1,
+          fillOpacity = 0.8,
+          group = "SoilSamp") %>%
         # Map View Setup
         setView(lng = -117.9074, lat = 46.29717, zoom = 9) %>%
         
@@ -118,7 +144,8 @@ map_module_server <- function(id) {
         # Fullscreen + Layer Control
         leaflet.extras::addFullscreenControl() %>%
         addLayersControl(
-          overlayGroups = c("Waterways", "SectTownRange", "County", "Watersheds", "hillshade", "lidar"),
+          overlayGroups = c("SoilSamp","Waterways", "SectTownRange", 
+                            "County", "Watersheds", "hillshade", "lidar"),
           baseGroups = c("Topo", "Imagery", "Dark", "Street", "Gray"),
           options = layersControlOptions(collapsed = FALSE)
         ) %>%
@@ -128,6 +155,48 @@ map_module_server <- function(id) {
         hideGroup("County") %>%
         hideGroup("Watersheds")
     })
+    
+    
+    observe({
+      
+      req(filtered_soil_points())
+      
+      leafletProxy("map_plot", session = session) %>%
+        clearGroup("SoilSamp") %>%  # clear old points
+        addCircleMarkers(
+          data = filtered_soil_points(),
+          lng = ~longitude,
+          lat = ~latitude,
+          radius = 7,
+          fillColor = "blue",
+          color = "black",
+          weight = 1,
+          opacity = 1,
+          fillOpacity = 0.8,
+          # label = ~paste0(
+          #   "<strong>Field:</strong> ", full_field, "<br>"),
+          group = "SoilSamp"
+        )
+      
+      if(nrow(filtered_soil_points()) > 0) {
+        leafletProxy("map_plot") %>%
+          flyToBounds(
+            lng1 = min(filtered_soil_points()$longitude) - 0.1,
+            lat1 = min(filtered_soil_points()$latitude) - 0.1,
+            lng2 = max(filtered_soil_points()$longitude) + 0.1,
+            lat2 = max(filtered_soil_points()$latitude) + 0.1
+          )
+      }
+      
+    
+      
+      
+      
+      })   
+    
+    
+    
+    
   })
 }
   

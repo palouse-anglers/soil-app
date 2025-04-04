@@ -25,8 +25,9 @@ server <- function(input, output, session) {
   soil_data3 <- new_soil_data_long_coords %>%
   dplyr:: mutate(full_field=paste0(field_name,"-",field_id))
   
-  compare_module_server("comparer", data = soil_data3)
-  map_module_server("mapper")
+  filtered_data <- compare_module_server("comparer", data = soil_data3)
+  
+  map_module_server("mapper",filtered_data)
   
 }
 
