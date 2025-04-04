@@ -314,9 +314,18 @@ soil_locations_combined %>%
 new_soil_data_long %>%
   nrow()
 
+
+
 new_soil_data_long_coords <- 
   new_soil_data_long %>%
   left_join(soil_locations_combined, by=c("year","field_id"="first_id")) %>%
+  left_join(points_with_watershed %>% 
+              mutate(
+                longitude = st_coordinates(.)[,1],
+                latitude  = st_coordinates(.)[,2]
+              ) %>%
+             select(longitude,latitude,huc8_name,hc12_name,huc12) %>%
+              st_drop_geometry(), by=c("longitude","latitude")) %>%
   mutate(sample_date=lubridate::date(DateSample)) %>%
   janitor::clean_names()
 
