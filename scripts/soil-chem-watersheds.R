@@ -42,6 +42,11 @@ points_with_watershed <- st_join(sample_points_sf, watersheds_fixed, join = st_w
 select(field_id,field_name,huc8_name,hc12_name,huc12)
 
 st_as_sf(points_with_watershed,coords = c("latitude" ,"longitude"),crs=4326) %>%
+  mutate(field_name=case_when(
+    field_name=="North Pakistan" & str_detect(field_id,"-2") ~ "North Pakistan-2",
+    field_name=="Hillis" & str_detect(field_id,"-2") ~ "Hillis-2",
+    field_name=="Poindexter" & str_detect(field_id,"-2") ~ "Poindexter-2",
+    TRUE ~ field_name)) %>%
 sf::st_write(,dsn="../soil-app/data/soil_sample_locations_orig.shp",append=FALSE)
 
 # %>%
@@ -110,27 +115,33 @@ unique_sites %>%
   select(field_id_orig=field_id,everything())
 
 
-new_soil_data_long  %>%
+soil_sites_2013 <-new_soil_data_long  %>%
   filter(year==2013) %>%
-  cnt(field_id)
+  distinct(field_id,year) %>% 
+  mutate(
+    first_id=field_id,
+    fixed_field_id = as.integer(str_extract(field_id, "(?<=-)[0-9]+"))) %>%
+  left_join(join_sites,by=c("fixed_field_id"="field_id2")) %>%
+  arrange(fixed_field_id) %>%
+  print(n=900)
 
 # 12,13,14 missing
-new_soil_data_long  %>%
+soil_sites_2014 <-new_soil_data_long  %>%
   filter(year==2014) %>%
-  distinct(field_id) %>% 
+  distinct(field_id,year) %>% 
   mutate(
+    first_id=field_id,
     fixed_field_id = as.integer(str_extract(field_id, "(?<=-)[0-9]+"))) %>%
   left_join(join_sites,by=c("fixed_field_id"="field_id2")) %>%
   arrange(fixed_field_id) %>%
   print(n=900)
   
-# 13-2 North Pakistan    46.47005489	-118.0833141    
-# 44-2 Hillis            46.40194891	-117.8568815
-# 29-2 Poindexter        46.39550725	-117.9925975
-new_soil_data_long  %>%
+
+soil_sites_2015 <-new_soil_data_long  %>%
   filter(year==2015) %>%
-  distinct(field_id) %>% 
+  distinct(field_id,year) %>% 
   mutate(
+    first_id=field_id,
     fixed_field_id = as.integer(str_extract(field_id, "(?<=-)[0-9]+")),
     fixed_field_id = ifelse(is.na(fixed_field_id),
                             as.integer(str_extract(field_id,"\\d+")),
@@ -140,16 +151,182 @@ new_soil_data_long  %>%
   arrange(fixed_field_id) %>%
   print(n=900)
 
+soil_sites_2016_17 <-new_soil_data_long  %>%
+  filter(year %in% c(2016,2017)) %>%
+  distinct(field_id,year) %>% 
+  mutate(
+    first_id=field_id,
+    field_id = case_when(
+      year %in% 2016 ~ paste0("16-",field_id),
+      year %in% 2017 ~ paste0("17-",field_id),
+     TRUE ~  field_id
+     ),
+    fixed_field_id = as.integer(str_extract(field_id, "(?<=-)[0-9]+")),
+    fixed_field_id = ifelse(is.na(fixed_field_id),
+                            as.integer(str_extract(field_id,"\\d+")),
+                            fixed_field_id)
+  ) %>%
+  left_join(join_sites,by=c("fixed_field_id"="field_id2")) %>%
+  arrange(fixed_field_id) %>%
+  print(n=900)
 
 
-control_site = ifelse(str_detect(field_id,"CONTROL"), "Y", NA_character_)
 
-field_id_mod <- case_when(
-  year %in% 2016 ~ paste0("16-",field_id),
-  year %in% 2017 ~ paste0("17-",field_id),
-  # NO for 18
-)
 
+
+soil_sites_2018 <- new_soil_data_long  %>%
+  filter(year==2018) %>%
+  distinct(field_id,year) %>% 
+  mutate(
+    first_id=field_id,
+    fixed_field_id = as.integer(str_extract(field_id, "(?<=-)[0-9]+")),
+    fixed_field_id = ifelse(is.na(fixed_field_id),
+                            as.integer(str_extract(field_id,"\\d+")),
+                            fixed_field_id)
+  ) %>%
+  left_join(join_sites,by=c("fixed_field_id"="field_id2")) %>%
+  arrange(fixed_field_id) %>%
+  print(n=900)
+
+
+soil_sites_2019 <-new_soil_data_long  %>%
+  filter(year==2019) %>%
+  distinct(field_id,year) %>% 
+  #mutate(field_id=paste0("19-",field_id)) %>%
+  mutate(
+    first_id=field_id,
+    fixed_field_id = as.integer(str_extract(field_id, "\\d+")),
+    fixed_field_id = ifelse(is.na(fixed_field_id),
+                            as.integer(str_extract(field_id,"\\d+")),
+                            fixed_field_id)
+  ) %>%
+  left_join(join_sites,by=c("fixed_field_id"="field_id2")) %>%
+  arrange(fixed_field_id) %>%
+  print(n=900)
+
+
+# TODO again is R 10 same as Culley?
+
+soil_sites_2020 <- new_soil_data_long  %>%
+  filter(year==2020) %>%
+  distinct(field_id,year) %>% 
+  slice(1:14) %>%
+  mutate(
+    first_id=field_id,
+    fixed_field_id = as.integer(str_extract(field_id, "\\d+")),
+    fixed_field_id = ifelse(is.na(fixed_field_id),
+                            as.integer(str_extract(field_id,"\\d+")),
+                            fixed_field_id)
+  ) %>%
+  left_join(join_sites,by=c("fixed_field_id"="field_id2")) %>%
+  arrange(fixed_field_id) %>%
+  print(n=900)
+# TODO what's with the 13 suffix for 2022 and 2023? 
+
+soil_sites_2021 <-new_soil_data_long  %>%
+  filter(year==2021) %>%
+  distinct(field_id,year) %>% 
+  mutate(
+    first_id=field_id,
+    fixed_field_id = as.integer(str_extract(field_id, "\\d+")),
+    fixed_field_id = ifelse(is.na(fixed_field_id),
+                            as.integer(str_extract(field_id,"\\d+")),
+                            fixed_field_id)
+  ) %>%
+  left_join(join_sites,by=c("fixed_field_id"="field_id2")) %>%
+  arrange(fixed_field_id) %>%
+  print(n=900)
+
+
+soil_sites_2022 <- new_soil_data_long  %>%
+  filter(year==2022) %>%
+  distinct(field_id,year) %>% 
+  mutate(first_id=field_id,
+    field_id=ifelse(str_starts(field_id, "13"), str_remove(field_id, "^13"), field_id)) %>%
+  mutate(
+    fixed_field_id = as.integer(str_extract(field_id, "\\d+")),
+    fixed_field_id = ifelse(is.na(fixed_field_id),
+                            as.integer(str_extract(field_id,"\\d+")),
+                            fixed_field_id)
+  ) %>%
+  left_join(join_sites,by=c("fixed_field_id"="field_id2")) %>%
+  arrange(fixed_field_id) %>%
+  print(n=900)
+
+soil_sites_2023 <- new_soil_data_long  %>%
+  filter(year==2023) %>%
+  distinct(field_id,year) %>% 
+  mutate(
+    first_id=field_id,
+    field_id=ifelse(str_starts(field_id, "13"), str_remove(field_id, "^13"), field_id)) %>%
+  mutate(
+    fixed_field_id = as.integer(str_extract(field_id, "\\d+")),
+    fixed_field_id = ifelse(is.na(fixed_field_id),
+                            as.integer(str_extract(field_id,"\\d+")),
+                            fixed_field_id)
+  ) %>%
+  left_join(join_sites,by=c("fixed_field_id"="field_id2")) %>%
+  arrange(fixed_field_id) %>%
+  print(n=900)
+
+
+# 13-2 North Pakistan    46.47005489	-118.0833141    
+# 44-2 Hillis            46.40194891	-117.8568815
+# 29-2 Poindexter        46.39550725	-117.9925975
+
+soil_locations_combined <- soil_sites_2013 %>%
+bind_rows(soil_sites_2014) %>%
+  bind_rows(soil_sites_2015) %>%
+  bind_rows(soil_sites_2016_17) %>%
+  bind_rows(soil_sites_2018) %>%
+  bind_rows(soil_sites_2019) %>%
+  bind_rows(soil_sites_2020) %>%
+  bind_rows(soil_sites_2021) %>%
+  bind_rows(soil_sites_2022) %>%
+  bind_rows(soil_sites_2023) %>%
+  filter(!is.na(longitude)) %>%
+  mutate(latitude=case_when(
+   field_name=="North Pakistan" & str_detect(field_id,"-2") ~ 46.47005489,
+   field_name=="Hillis" & str_detect(field_id,"-2") ~ 46.47005489,
+   field_name=="Poindexter" & str_detect(field_id,"-2") ~ 46.39550725,
+   TRUE ~ latitude),
+   longitude=case_when(
+     field_name=="North Pakistan" & str_detect(field_id,"-2") ~ -118.0833141,
+     field_name=="Hillis" & str_detect(field_id,"-2") ~ -117.8568815,
+     field_name=="Poindexter" & str_detect(field_id,"-2") ~ -117.9925975,
+     TRUE ~ longitude),
+   field_name=case_when(
+     field_name=="North Pakistan" & str_detect(field_id,"-2") ~ "North Pakistan-2",
+     field_name=="Hillis" & str_detect(field_id,"-2") ~ "Hillis-2",
+     field_name=="Poindexter" & str_detect(field_id,"-2") ~ "Poindexter-2",
+     TRUE ~ field_name),
+   control=ifelse(str_detect(field_name,"CONTROL"),"Y",""),
+   in_out=case_when(
+     str_detect(field_name,"OUT") ~ "OUT",
+     str_detect(field_name,"IN") ~ "IN",
+     TRUE ~ ""
+   ))
+
+# have sites
+soil_locations_combined %>%
+  cnt(year)
+
+new_soil_data_long %>%
+  nrow()
+
+new_soil_data_long_coords <- 
+  new_soil_data_long %>%
+  left_join(soil_locations_combined, by=c("year","field_id"="first_id")) %>%
+  mutate(sample_date=lubridate::date(DateSample)) %>%
+  janitor::clean_names()
+
+
+save(new_soil_data_long_coords,file="data/soil_data3.RData")
+
+new_soil_data_long_coords %>%
+  cnt(year, is.na(longitude),pct = TRUE,n_distinct_vars = field_id) %>%
+  filter(`is.na(longitude)`==TRUE) %>%
+  print(n=600)
 
 # TODO Poindexter 29 (missing), 29-1,29-2,29-01 (missing) 29-0 (missing)
 # Will assume  13-29 is = 29-1  Poindexter 46.39547 -117.9928
@@ -275,8 +452,13 @@ historic_samples <- historic_soil_samp %>%
   left_join(distinct_soil_locations %>% select(field, field_name,
                                                huc12, hc12_name, 
                                                longitude, latitude),by = c("longitude","latitude"))
+historic_samples_map_test <- 
+  historic_samples %>%
+  distinct(location_id,longitude,latitude) %>%
+  mutate(across(everything(),~as.numeric(.x)))
 
 
+points_with_watershed
 
 historic_samples_yearly_summary <- historic_samples %>%
   select(
