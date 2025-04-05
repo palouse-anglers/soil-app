@@ -75,7 +75,7 @@ map_module_server <- function(id,filtered_data) {
           fillOpacity = 0.8,
           group = "SoilSamp") %>%
         # Map View Setup
-        setView(lng = -117.9074, lat = 46.29717, zoom = 9) %>%
+        setView(lng = -117.9074, lat = 46.29717, zoom = 10) %>%
         
         # WMS Waterways
         addWMSTiles(
@@ -146,25 +146,31 @@ map_module_server <- function(id,filtered_data) {
         addLayersControl(
           overlayGroups = c("SoilSamp","Waterways", "SectTownRange", 
                             "County", "Watersheds", "hillshade", "lidar"),
-          baseGroups = c("Topo", "Imagery", "Dark", "Street", "Gray"),
+          baseGroups = c("Gray", "Imagery", "Dark", "Street", "Topo"),
           options = layersControlOptions(collapsed = FALSE)
         ) %>%
         hideGroup("SectTownRange") %>%
         hideGroup("lidar") %>%
         hideGroup("hillshade") %>%
-        hideGroup("County") %>%
-        hideGroup("Watersheds")
+        hideGroup("County") 
+        #hideGroup("Watersheds")
     })
     
+    
+    # Track last bounds
+    last_bounds <- reactiveVal(NULL)
     
     observe({
       
       req(filtered_soil_points())
       
+      # Track last bounds
+      points <- filtered_soil_points()
+      
       leafletProxy("map_plot", session = session) %>%
         clearGroup("SoilSamp") %>%  # clear old points
         addCircleMarkers(
-          data = filtered_soil_points(),
+          data = points,
           lng = ~longitude,
           lat = ~latitude,
           radius = 7,
@@ -178,21 +184,30 @@ map_module_server <- function(id,filtered_data) {
           group = "SoilSamp"
         )
       
-      if(nrow(filtered_soil_points()) > 0) {
-        leafletProxy("map_plot") %>%
-          flyToBounds(
-            lng1 = min(filtered_soil_points()$longitude) - 0.1,
-            lat1 = min(filtered_soil_points()$latitude) - 0.1,
-            lng2 = max(filtered_soil_points()$longitude) + 0.1,
-            lat2 = max(filtered_soil_points()$latitude) + 0.1
+      
+      new_bounds <- list(
+        lng1 = min(points$longitude, na.rm = TRUE),
+        lat1 = min(points$latitude, na.rm = TRUE),
+        lng2 = max(points$longitude, na.rm = TRUE),
+        lat2 = max(points$latitude, na.rm = TRUE)
+      )
+      
+      # Compare new bounds to previous bounds
+      if (!identical(last_bounds(), new_bounds)) {
+        leafletProxy("map_plot", session = session) %>%
+          fitBounds(
+            lng1 = new_bounds$lng1,
+            lat1 = new_bounds$lat1,
+            lng2 = new_bounds$lng2,
+            lat2 = new_bounds$lat2
           )
+        
+        last_bounds(new_bounds)  # update bounds
       }
+  
       
     
-      
-      
-      
-      })   
+    })   
     
     
     

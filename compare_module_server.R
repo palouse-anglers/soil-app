@@ -19,43 +19,95 @@ compare_module_server <- function(id, data) {
     
     
     
+    
+    
+    
     filtered_data_fields <- reactive({
+      out <- data
       
-       # req(input$year)
-       # req(input$sample_depth)
-       # req(input$input$watershed)
-                   
+      if (!is.null(input$year) && length(input$year) > 0) {
+        out <- out %>% filter(year %in% input$year)
+      }
+      
+      if (!is.null(input$sample_depth) && length(input$sample_depth) > 0) {
+        out <- out %>% filter(depth %in% input$sample_depth)
+      }
+      
+      if (!is.null(input$watershed) && length(input$watershed) > 0) {
+        out <- out %>% filter(hc12_name %in% input$watershed)
+      }
+      
       if (isTRUE(input$only_with_coords)) {
-        
-        data %>%
-        filter(!is.na(latitude), !is.na(longitude))
-        
-        }
-        
-      data
-        
-         #filter(year %in% input$year) %>%
-         #filter(depth %in% input$sample_depth) %>%
-         #filter(hc12_name %in% input$watershed)
-        
-        
-   
+        out <- out %>% filter(!is.na(latitude), !is.na(longitude))
+      }
+      
+      out
     })
     
-    # fields
-    observe({
-      
-      field_choices <- filtered_data_fields() %>%
-        select(full_field, fixed_field_id) %>%
-        distinct() %>%
-        arrange(fixed_field_id) %>%
-        pull(full_field)
-      
-      updatePickerInput(
-        session, "selected_fields",
-        choices = field_choices
-      )
-    })
+    observeEvent(
+      {
+        input$year
+        input$sample_depth
+        input$watershed
+        input$only_with_coords
+      },
+      {
+        req(filtered_data_fields())
+        
+        available_fields <- filtered_data_fields() %>%
+          select(full_field, fixed_field_id) %>%
+          distinct() %>%
+          arrange(fixed_field_id) %>%
+          pull(full_field)
+        
+        if (length(available_fields) > 0) {
+          updatePickerInput(
+            session,
+            "selected_fields",
+            choices = available_fields,
+            selected = available_fields
+          )
+        } else {
+          updatePickerInput(
+            session,
+            "selected_fields",
+            choices = available_fields,
+            selected = ""
+          )
+        }
+      },
+      ignoreNULL = FALSE,
+      ignoreInit = FALSE
+    )
+    
+    # observe({
+    #   
+    #   req(filtered_data_fields())
+    #   
+    #   available_fields <- filtered_data_fields() %>%
+    #     select(full_field, fixed_field_id) %>%
+    #     distinct() %>%
+    #     arrange(fixed_field_id) %>%
+    #     pull(full_field)
+    #   
+    #   if (length(available_fields) > 0) {
+    #     updatePickerInput(
+    #       session,
+    #       "selected_fields",
+    #       choices = available_fields,
+    #       selected = available_fields  
+    #     )
+    #   } else {
+    #     updatePickerInput(
+    #       session,
+    #       "selected_fields",
+    #       choices = character(0),
+    #       selected = character(0) 
+    #     )
+    #   }
+    #   
+    #   
+    # })
     
     
     # year 
@@ -115,9 +167,9 @@ compare_module_server <- function(id, data) {
     filtered_data <- reactive({
       
       filtered_data_fields() %>%
-      filter(year %in% input$year) %>%
-      filter(depth %in% input$sample_depth) %>%
-      filter(hc12_name %in% input$watershed) %>%
+     # filter(year %in% input$year) %>%
+     # filter(depth %in% input$sample_depth) %>%
+     #filter(hc12_name %in% input$watershed) %>%
       filter(full_field %in% input$selected_fields) %>%
       filter(parameter %in% input$parameter)
       

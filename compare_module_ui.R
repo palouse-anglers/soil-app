@@ -51,19 +51,19 @@ compare_module_ui <- function(id) {
       label = "Has Coordinates",
       onLabel = "Yes", offLabel = "All",
       value = TRUE,   
-      size = "small"
+      size = "mini"
     ),
     pickerInput(
       inputId = ns("selected_fields"),
-      label = "Select Fields to Compare:",
+      label = "Select Events by Field",
       choices = NULL,
       multiple = TRUE,
       options = pickerOptions(
+        `dropup-auto` = FALSE,
         `actions-box` = TRUE,
         `live-search` = TRUE,
         `selected-text-format` = "count > 2",
-        `count-selected-text` = "{0} Fields",
-        `max-options` = 8
+        `count-selected-text` = "{0} Events"
       )
     ),
     pickerInput(
