@@ -29,6 +29,10 @@ compare_module_server <- function(id, data) {
         out <- out %>% filter(year %in% input$year)
       }
       
+      if (!is.null(input$month) && length(input$month) > 0) {
+        out <- out %>% filter(month %in% input$month)
+      }
+      
       if (!is.null(input$sample_depth) && length(input$sample_depth) > 0) {
         out <- out %>% filter(depth %in% input$sample_depth)
       }
@@ -47,6 +51,7 @@ compare_module_server <- function(id, data) {
     observeEvent(
       {
         input$year
+        input$month
         input$sample_depth
         input$watershed
         input$only_with_coords
@@ -116,6 +121,15 @@ compare_module_server <- function(id, data) {
         session, "year",
         choices = sort(unique(data$year)),
         selected = sort(unique(data$year))  
+      )
+    })
+    
+    # month 
+    observe({
+      updatePickerInput(
+        session, "month",
+        choices = sort(unique(data$month)),
+        selected = sort(unique(data$month))  
       )
     })
     

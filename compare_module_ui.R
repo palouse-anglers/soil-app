@@ -21,6 +21,18 @@ compare_module_ui <- function(id) {
       )
     ),
     pickerInput(
+      inputId = ns("month"),
+      label = "Select Month:",
+      choices = NULL,
+      multiple = TRUE,
+      options = pickerOptions(
+        `live-search` = TRUE,
+        `actions-box` = TRUE,
+        `selected-text-format` = "count > 2",
+        `count-selected-text` = "{0} Months"
+      )
+    ),
+    pickerInput(
       inputId = ns("sample_depth"),
       label = "Select Sample Depth:",
       choices = unique_depths,
