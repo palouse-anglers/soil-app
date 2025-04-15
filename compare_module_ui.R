@@ -15,6 +15,7 @@ compare_module_ui <- function(id) {
       multiple = TRUE,
       options = pickerOptions(
         `live-search` = TRUE,
+        `dropup-auto` = FALSE,
         `actions-box` = TRUE,
         `selected-text-format` = "count > 2",
         `count-selected-text` = "{0} Years"
@@ -27,6 +28,7 @@ compare_module_ui <- function(id) {
       multiple = TRUE,
       options = pickerOptions(
         `live-search` = TRUE,
+        `dropup-auto` = FALSE,
         `actions-box` = TRUE,
         `selected-text-format` = "count > 2",
         `count-selected-text` = "{0} Months"
@@ -39,6 +41,7 @@ compare_module_ui <- function(id) {
       multiple = TRUE,
       options = pickerOptions(
         `live-search` = TRUE,
+        `dropup-auto` = FALSE,
         `actions-box` = TRUE,
         `selected-text-format` = "count > 2",
         `count-selected-text` = "{0} Depths",
@@ -52,6 +55,7 @@ compare_module_ui <- function(id) {
       multiple = TRUE,
       options = pickerOptions(
         `actions-box` = TRUE,
+        `dropup-auto` = FALSE,
         `live-search` = TRUE,
         `selected-text-format` = "count > 1",
         `count-selected-text` = "{0} Watersheds",
@@ -72,23 +76,26 @@ compare_module_ui <- function(id) {
       multiple = TRUE,
       options = pickerOptions(
         `dropup-auto` = FALSE,
+        `size` = 50,
         `actions-box` = TRUE,
         `live-search` = TRUE,
         `selected-text-format` = "count > 2",
         `count-selected-text` = "{0} Events"
       )
-    ),
-    pickerInput(
-      inputId = ns("parameter"),
-      label = "Select Parameter:",
-      choices = NULL,
-      multiple = TRUE,
-      options = pickerOptions(
-        `live-search` = TRUE,
-        `actions-box` = TRUE,
-        `selected-text-format` = "count > 1",
-        `count-selected-text` = "{0} Parameters",
-      )
     )
+  # ,
+  #   pickerInput(
+  #     inputId = ns("parameter"),
+  #     label = "Select Parameter:",
+  #     choices = NULL,
+  #     multiple = TRUE,
+  #     options = pickerOptions(
+  #       `dropup-auto` = FALSE,
+  #       `live-search` = TRUE,
+  #       `actions-box` = TRUE,
+  #       `selected-text-format` = "count > 1",
+  #       `count-selected-text` = "{0} Parameters",
+  #     )
+  #   )
   )
 }

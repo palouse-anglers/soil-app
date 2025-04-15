@@ -142,20 +142,20 @@ compare_module_server <- function(id, data) {
       )
     })
     
-    # param
-    observe({
-      
-      ppm <-  data %>% 
-        filter(str_detect(parameter,"ppm")) %>%
-        pull(parameter) %>%
-        unique()
-      
-      updatePickerInput(
-        session, "parameter",
-        choices = sort(unique(data$parameter)),
-        selected= ppm
-      )
-    })
+    # # param
+    # observe({
+    #   
+    #   ppm <-  data %>% 
+    #     filter(str_detect(parameter,"ppm")) %>%
+    #     pull(parameter) %>%
+    #     unique()
+    #   
+    #   updatePickerInput(
+    #     session, "parameter",
+    #     choices = sort(unique(data$parameter)),
+    #     selected= ppm
+    #   )
+    # })
     
     
     # Watershed picker
@@ -184,8 +184,8 @@ compare_module_server <- function(id, data) {
      # filter(year %in% input$year) %>%
      # filter(depth %in% input$sample_depth) %>%
      #filter(hc12_name %in% input$watershed) %>%
-      filter(full_field %in% input$selected_fields) %>%
-      filter(parameter %in% input$parameter)
+      filter(full_field %in% input$selected_fields) 
+      #filter(parameter %in% input$parameter)
       
     })
     

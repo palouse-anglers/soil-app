@@ -10,13 +10,13 @@ source("map_module_ui.R")
 source("map_module_server.R")
 source("summary_module_ui.R")
 source("summary_module_server.R")
-source("plot_module_ui.R")
-source("plot_module_server.R")
+source("raw_plot_module_ui.R")
+source("raw_plot_module_server.R")
 
 ui <- page_sidebar(
   title = "Columbia County Soil Health",
   theme = bs_theme(version = 5, bootswatch = "minty"),
-  sidebar = sidebar(width = '400px',
+  sidebar = sidebar(width = '500px',
     title = "Main Filters",
     compare_module_ui("original")
     ),
@@ -29,10 +29,10 @@ ui <- page_sidebar(
       )
   ),
   nav_panel(
-    title = "Plots",
+    title = "Build a Compare",
     page_fillable(
       layout_columns(
-        col_widths = c(4, 8),  # Sidebar 4/12, Plot 8/12
+        col_widths = c(8,4),  # Sidebar 4/12, Plot 8/12
         
         ### Left Column (Comparison Filters inside a Card)
         bslib::card(
@@ -44,16 +44,28 @@ ui <- page_sidebar(
         ### Right Column (Comparison Plot inside a Card)
         bslib::card(
           full_screen = TRUE,
-          card_header("Comparison Plot"),
-          plot_module_ui("compare_plot")
+          card_header("Instructions"),
+          card_body("")
         )
       )
     )
   ),
-  
+  nav_panel(
+    title = "Raw Plots",
+    page_fillable(
+      # layout_columns(
+      #   col_widths = c(4, 8),
+        
+      bslib::card(
+          full_screen = TRUE,
+          card_header("Compare Filters"),
+          raw_plot_module_ui("raw_compare_plot")
+        )
   
   )
-)
+    )
+
+  ))
 
 server <- function(input, output, session) {
   load("data/soil_data3.RData")
@@ -69,8 +81,8 @@ server <- function(input, output, session) {
   
   map_module_server("mapper",filtered_data)
   summary_module_server("summarizer",filtered_data)
-  plot_module_server(
-    id = "compare_plot",
+  raw_plot_module_server(
+    id = "raw_compare_plot",
     filtered_data = filtered_data,
     filtered_data2 = filtered_data2
   )
