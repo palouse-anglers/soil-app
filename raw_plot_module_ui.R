@@ -15,7 +15,7 @@ raw_plot_module_ui <- function(id) {
     radioButtons(
       inputId = ns("plot_type"),
       label = "Plot Type:",
-      choices = c("Dot Plot" = "dot", "Bar Plot" = "bar"),
+      choices = c("Dot Plot" = "dot", "Box Plot" = "box","Heat Plot"="heat"),
       selected = "dot",
       inline = TRUE
     )),
@@ -25,14 +25,14 @@ raw_plot_module_ui <- function(id) {
         width = 6,
         card(full_screen = T,
           card_header("Filtered Data 1"),
-          card_body(plotOutput(ns("plot1")))
+          card_body(plotlyOutput(ns("plot1")))
         )
       ),
       column(
         width = 6,
         card(full_screen = T,
           card_header("Filtered Data 2"),
-          card_body(plotOutput(ns("plot2")))
+          card_body(plotlyOutput(ns("plot2")))
         )
       )
     )
