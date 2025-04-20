@@ -6,6 +6,8 @@ library(sortable)
 library(plotly)
 library(leaflet)
 library(ggridges)
+library(gtsummary)
+library(gt)
 
 source("compare_module_ui.R")
 source("compare_module_server.R")
@@ -15,16 +17,42 @@ source("summary_module_ui.R")
 source("summary_module_server.R")
 source("raw_plot_module_ui.R")
 source("raw_plot_module_server.R")
+source("gt_table_module_ui.R")
+source("gt_table_module_server.R")
 
 ui <- page_sidebar(
   title = "Columbia County Soil Health",
   theme = bs_theme(version = 5, bootswatch = "minty"),
-  sidebar = sidebar(width = '500px',
-    title = "Main Filters",
+  sidebar = sidebar(
+    width = '500px',
+    title = "Subset and Compare Groups",
+    bslib::accordion(
+    id = "compare_groups",
+  bslib::accordion_panel(
+    title = "Group A",
     compare_module_ui("original")
     ),
+    bslib::accordion_panel(
+      title = "Group B",
+      compare_module_ui("compare")
+      )),
+  pickerInput(
+    inputId = "parameter",
+    label = "Select Parameter:",
+    choices = NULL, # to be populated dynamically
+    multiple = TRUE,
+    width = "100%",
+    options = list(`live-search` = TRUE)
+  )
+),
   navset_tab(id = "main_tabs",
+             bslib::accordion(
+               id = "value_boxes",
+               bslib::accordion_panel(
+                 title = "Summaries",
              summary_module_ui("summarizer"),
+             summary_module_ui("summarizer_compare",group = "B", theme = "secondary")),
+             ),
   nav_panel(
       title = "Map",
       page_fillable(
@@ -34,24 +62,16 @@ ui <- page_sidebar(
   nav_panel(
     title = "Build a Compare",
     page_fillable(
-      layout_columns(
-        col_widths = c(8,4),  # Sidebar 4/12, Plot 8/12
+      
+      bslib::card(
+        full_screen = TRUE,
+        card_header("Compare Filters (Group B)")
         
-        ### Left Column (Comparison Filters inside a Card)
-        bslib::card(
-          full_screen = TRUE,
-          card_header("Compare Filters"),
-          compare_module_ui("compare")
-        ),
-        
-        ### Right Column (Comparison Plot inside a Card)
-        bslib::card(
-          full_screen = TRUE,
-          card_header("Instructions"),
-          card_body("")
+        ### Picker Inputs (stacked vertically)
+        #compare_module_ui("compare")
+        #card_footer(summary_module_ui("summarizer_compare", theme = "secondary"))
         )
       )
-    )
   ),
   nav_panel(
     title = "Raw Plots",
@@ -66,7 +86,18 @@ ui <- page_sidebar(
         )
   
   )
+    ),
+  nav_panel(
+    title = "Raw Tables",
+    page_fillable(
+      bslib::card(
+        full_screen = TRUE,
+        card_header("Summary Table"),
+        gt_table_module_ui("raw_compare_table")
+      )
+      
     )
+  ),
 
   ))
 
@@ -81,14 +112,40 @@ server <- function(input, output, session) {
   
   filtered_data <- compare_module_server("original", data = soil_data3)
   filtered_data2 <- compare_module_server("compare", data = soil_data3)
+  selected_param <- reactive({ input$parameter })
+  
   
   map_module_server("mapper",filtered_data)
   summary_module_server("summarizer",filtered_data)
+  summary_module_server("summarizer_compare",filtered_data2)
+
+ gt_table_module_server("raw_compare_table",filtered_data, filtered_data2)
+
   raw_plot_module_server(
     id = "raw_compare_plot",
     filtered_data = filtered_data,
-    filtered_data2 = filtered_data2
+    filtered_data2 = filtered_data2,
+    selected_parameter = selected_param
   )
-}
+  
+  observe({
+    req(filtered_data(), filtered_data2())
+    
+    all_params <- union(
+      unique(filtered_data()$parameter),
+      unique(filtered_data2()$parameter)
+    )
+    
+    print(all_params)
+    
+    updatePickerInput(
+      session,
+      inputId = "parameter",
+      choices = sort(all_params),
+      selected = isolate(selected_param())
+    )
+  })
+
+  }
 
 shinyApp(ui = ui, server = server)

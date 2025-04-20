@@ -4,14 +4,7 @@ raw_plot_module_ui <- function(id) {
   ns <- NS(id)
   
   tagList(
-    fluidRow(pickerInput(
-      inputId = ns("parameter"),
-      label = "Select Parameter:",
-      choices = NULL, # to be populated dynamically
-      multiple = TRUE,
-      width = "100%",
-      options = list(`live-search` = TRUE)
-    ),
+    fluidRow(
     radioButtons(
       inputId = ns("plot_type"),
       label = "Plot Type:",

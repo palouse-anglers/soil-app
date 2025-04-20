@@ -1,35 +1,19 @@
-raw_plot_module_server <- function(id, filtered_data, filtered_data2) {
+raw_plot_module_server <- function(id, filtered_data, filtered_data2, selected_parameter) {
   moduleServer(id, function(input, output, session) {
     
-    observe({
-      req(filtered_data(), filtered_data2())
-      
-      all_params <- union(
-        unique(filtered_data()$parameter),
-        unique(filtered_data2()$parameter)
-      )
-      
-      print(all_params)
-      
-      updatePickerInput(
-        session,
-        inputId = "parameter",
-        choices = sort(all_params),
-        selected = isolate(input$parameter)
-      )
-    })
+
     
     # Create combined dataset
 
       main_data <- reactive({ 
         filtered_data() %>%
-        filter(parameter %in% input$parameter) %>%
+        filter(parameter %in% selected_parameter()) %>%
         mutate(group = "Main Filter")
       })
       
       compare_data <-reactive({ 
         filtered_data2() %>%
-        filter(parameter %in% input$parameter) %>%
+        filter(parameter %in% selected_parameter()) %>%
         mutate(group = "Compare Filter")
     })
     
@@ -75,6 +59,7 @@ raw_plot_module_server <- function(id, filtered_data, filtered_data2) {
                         text = paste(
                           "Parameter:", parameter,
                           "<br>Result:", round(result, 2),
+                          "<br>Field:",full_field,
                           "<br>Date:", sample_date
                         )
                       )) +
@@ -151,6 +136,7 @@ raw_plot_module_server <- function(id, filtered_data, filtered_data2) {
                         text = paste(
                           "Date:", sample_date,
                           "<br>Result:", round(result, 2),
+                          "<br>Field:",full_field,
                           "<br>Parameter:", parameter
                         )
                       )) +
@@ -177,6 +163,7 @@ raw_plot_module_server <- function(id, filtered_data, filtered_data2) {
                         text = paste(
                           "Parameter:", parameter,
                           "<br>Result:", round(result, 2),
+                          "<br>Field:",full_field,
                           "<br>Date:", sample_date
                         )
                       )) +
