@@ -17,6 +17,20 @@ raw_plot_module_server <- function(id, filtered_data, filtered_data2, selected_p
         mutate(group = "Compare Filter")
     })
     
+      
+      # slope_data <- main_data() %>%
+      #   group_by(parameter) %>%
+      #   summarise(Group_A_mean = mean(result, na.rm = TRUE)) %>%
+      #   inner_join(
+      #     compare_data() %>%
+      #       group_by(parameter) %>%
+      #       summarise(Group_B_mean = mean(result, na.rm = TRUE)),
+      #     by = "parameter"
+      #   )
+      # 
+
+      
+
     
     # Plot for filtered_data()
       output$plot1 <- renderPlotly({
@@ -224,5 +238,77 @@ raw_plot_module_server <- function(id, filtered_data, filtered_data2, selected_p
           
         
       })
-  })
+      
+          output$plot3 <- renderPlotly({
+          req(main_data(), compare_data())
+          
+          slope_data <- main_data() %>%
+            group_by(parameter) %>%
+            summarise(Group_A_mean = mean(result, na.rm = TRUE)) %>%
+            inner_join(
+             compare_data() %>%
+                group_by(parameter) %>%
+                summarise(Group_B_mean = mean(result, na.rm = TRUE)),
+              by = "parameter"
+            )
+          
+          slope_data_long <- slope_data %>%
+            pivot_longer(cols = c(Group_A_mean, Group_B_mean),
+                         names_to = "group", values_to = "mean") %>%
+            mutate(group = recode(group, "Group_A_mean" = "Group A", "Group_B_mean" = "Group B"))
+          
+          p <- ggplot(slope_data_long, aes(
+            x = group,
+            y = mean,
+            group = parameter,
+            color = parameter,
+            text = paste0("Parameter: ", parameter, "<br>Group: ", group, "<br>Mean: ", round(mean, 2))
+          )) +
+            geom_line() +
+            geom_point(size = 2) +
+            labs(title = "Slope Chart: Parameter Means", y = "Mean Result", x = "") +
+            theme_minimal() +
+            theme(legend.position = "none")
+          
+          ggplotly(p, tooltip = "text")
+        })
+      
+          output$plot4 <- renderPlotly({
+            req(main_data(), compare_data())
+            
+      # Step 1: Summarize data
+            slope_data <- main_data() %>%
+              group_by(parameter) %>%
+              summarise(Group_A_mean = mean(result, na.rm = TRUE)) %>%
+              inner_join(
+                compare_data() %>%
+                  group_by(parameter) %>%
+                  summarise(Group_B_mean = mean(result, na.rm = TRUE)),
+                by = "parameter"
+              )
+            
+    # Step 2: Pivot to long format
+            heat_data <- slope_data %>%
+              pivot_longer(cols = c(Group_A_mean, Group_B_mean),
+                           names_to = "group", values_to = "mean") %>%
+              mutate(group = recode(group, "Group_A_mean" = "Group A", "Group_B_mean" = "Group B"))
+            
+            # Step 3: Create ggplot heatmap
+            p <- ggplot(heat_data, aes(x = group, y = reorder(parameter, mean), fill = mean,
+                                       text = paste0("Parameter: ", parameter,
+                                                     "<br>Group: ", group,
+                                                     "<br>Mean: ", round(mean, 2)))) +
+              geom_tile(color = "white") +
+              scale_fill_gradient(low = "#f5f5f5", high = "#78c2ad") +
+              labs(
+                title = "Heat Map: Parameter Means (Group A vs B)",
+                x = "Group", y = "Parameter", fill = "Mean Result"
+              ) +
+              theme_minimal()
+            
+            # Step 4: Convert to interactive plot
+            ggplotly(p, tooltip = "text")
+          })
+  
+          })
 }

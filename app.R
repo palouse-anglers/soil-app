@@ -59,22 +59,22 @@ ui <- page_sidebar(
       map_module_ui("mapper")
       )
   ),
+  # nav_panel(
+  #   title = "Build a Compare",
+  #   page_fillable(
+  #     
+  #     bslib::card(
+  #       full_screen = TRUE,
+  #       card_header("Compare Filters (Group B)")
+  #       
+  #       ### Picker Inputs (stacked vertically)
+  #       #compare_module_ui("compare")
+  #       #card_footer(summary_module_ui("summarizer_compare", theme = "secondary"))
+  #       )
+  #     )
+  # ),
   nav_panel(
-    title = "Build a Compare",
-    page_fillable(
-      
-      bslib::card(
-        full_screen = TRUE,
-        card_header("Compare Filters (Group B)")
-        
-        ### Picker Inputs (stacked vertically)
-        #compare_module_ui("compare")
-        #card_footer(summary_module_ui("summarizer_compare", theme = "secondary"))
-        )
-      )
-  ),
-  nav_panel(
-    title = "Raw Plots",
+    title = "Plots",
     page_fillable(
       # layout_columns(
       #   col_widths = c(4, 8),
@@ -88,7 +88,7 @@ ui <- page_sidebar(
   )
     ),
   nav_panel(
-    title = "Raw Tables",
+    title = "Tables",
     page_fillable(
       bslib::card(
         full_screen = TRUE,
@@ -115,7 +115,7 @@ server <- function(input, output, session) {
   selected_param <- reactive({ input$parameter })
   
   
-  map_module_server("mapper",filtered_data)
+  map_module_server("mapper",filtered_data,filtered_data2)
   summary_module_server("summarizer",filtered_data)
   summary_module_server("summarizer_compare",filtered_data2)
 
