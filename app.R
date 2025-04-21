@@ -8,6 +8,7 @@ library(leaflet)
 library(ggridges)
 library(gtsummary)
 library(gt)
+library(sf)
 
 source("compare_module_ui.R")
 source("compare_module_server.R")

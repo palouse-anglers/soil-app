@@ -28,13 +28,15 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
       
       filtered_data() %>%
       filter(!is.na(latitude),!is.na(longitude)) %>%
-      distinct(latitude,longitude,field_name,hc12_name) %>%
-        mutate(
-          label = paste0(
-            "<strong>", field_name, "</strong><br>",
-            "<span style='font-size: 10px;'>", hc12_name, "</span>"
-          ) %>% lapply(htmltools::HTML)
-        )
+      distinct(latitude,longitude,field_name,hc12_name) 
+      
+      # %>%
+      #   mutate(
+      #     label = paste0(
+      #       "<strong>", field_name, "</strong><br>",
+      #       "<span style='font-size: 10px;'>", hc12_name, "</span>"
+      #     ) %>% lapply(htmltools::HTML)
+      #   )
     
       })
     
@@ -44,13 +46,14 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
       
       filtered_data2() %>%
         filter(!is.na(latitude),!is.na(longitude)) %>%
-        distinct(latitude,longitude,field_name,hc12_name)%>%
-        mutate(
-          label = paste0(
-            "<strong>", field_name, "</strong><br>",
-            "<span style='font-size: 10px;'>", hc12_name, "</span>"
-          ) %>% lapply(htmltools::HTML)
-        )
+        distinct(latitude,longitude,field_name,hc12_name)
+      # %>%
+      #   mutate(
+      #     label = paste0(
+      #       "<strong>", field_name, "</strong><br>",
+      #       "<span style='font-size: 10px;'>", hc12_name, "</span>"
+      #     ) %>% lapply(htmltools::HTML)
+      #   )
       
     })
     
@@ -61,8 +64,15 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
     columbia_county_boundary <- suppressWarnings(geojsonsf::geojson_sf(geojson = columbia_county_boundary_url))
     
     # HUC12 Watersheds
+    #columbia_huc12_url <- "http://142.93.92.104:8080/geoserver/Columbia/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Columbia:all_columbia_huc_12s&outputFormat=application/json"
+    #columbia_sf_huc_data <- geojsonsf::geojson_sf(columbia_huc12_url)
+    
+    
     columbia_huc12_url <- "http://142.93.92.104:8080/geoserver/Columbia/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Columbia:all_columbia_huc_12s&outputFormat=application/json"
-    columbia_sf_huc_data <- geojsonsf::geojson_sf(columbia_huc12_url)
+    
+    columbia_sf_huc_data <- 
+      sf::st_read(columbia_huc12_url, quiet = TRUE)
+  
     
     labels <- paste(
       "<strong>", columbia_sf_huc_data$hc12_name, "</strong><br>",
@@ -74,6 +84,8 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
     
     # --- Render Leaflet Map ---
     output$map_plot <- leaflet::renderLeaflet({
+      
+      req(filtered_soil_points())
       
       leaflet() %>%
         # Base ESRI layer (PLSS)
@@ -127,7 +139,7 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
           lat = ~latitude,
           radius = 8,
           fillColor = "#f3969a",
-          label = ~label,
+          #label = ~label,
           color = "black",
           weight = 1,
           opacity = 1,
@@ -139,7 +151,7 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
           lat = ~latitude,
           radius = 8,
           fillColor = "#78c2ad",
-          label = ~label,
+          #label = ~field_name,
           color = "black",
           weight = 1,
           opacity = 1,
@@ -206,6 +218,7 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
     
     observe({
       
+      req(filtered_soil_points())
       # Track last bounds
       points <-   filtered_soil_points()
       points2 <-  filtered_soil_points2()
@@ -242,8 +255,19 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
         #   "<strong>Field:</strong> ", full_field, "<br>"),
         group = "SoilSamp"
       )
+    })
+    
+    observe({
+      points <- filtered_soil_points()
+      points2 <- filtered_soil_points2()
       
-      all_points <- rbind(points,points2)
+      req(nrow(points) > 0, nrow(points2) > 0)
+      
+      all_points <- dplyr::bind_rows(
+        points %>% select(longitude, latitude),  # ← leave out label
+        points2 %>% select(longitude, latitude)
+      ) %>%
+        mutate(across(everything(), ~ as.numeric(unlist(.))))
       
       new_bounds <- list(
         lng1 = min(all_points$longitude, na.rm = TRUE),
@@ -252,7 +276,6 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
         lat2 = max(all_points$latitude, na.rm = TRUE)
       )
       
-      # Compare new bounds to previous bounds
       if (!identical(last_bounds(), new_bounds)) {
         leafletProxy("map_plot", session = session) %>%
           fitBounds(
@@ -261,13 +284,9 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
             lng2 = new_bounds$lng2,
             lat2 = new_bounds$lat2
           )
-        
-        last_bounds(new_bounds)  # update bounds
+        last_bounds(new_bounds)
       }
-  
-      
-    
-    })   
+    })
     
     
     
