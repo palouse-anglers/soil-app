@@ -26,7 +26,9 @@ source("raw_plot_module_ui.R")
 source("raw_plot_module_server.R")
 source("gt_table_module_ui.R")
 source("gt_table_module_server.R")
-source("sql_query_llm_module.R") 
+source("soil_chat_ui.R")
+source("soil_chat_server.R")
+
 
 plan(multisession)
 
@@ -58,13 +60,7 @@ ui <- page_sidebar(
   )
 ),
   navset_tab(id = "main_tabs",
-             bslib::accordion(
-               id = "value_boxes",
-               bslib::accordion_panel(
-                 title = "Summaries",
-             summary_module_ui("summarizer"),
-             summary_module_ui("summarizer_compare",group = "B", theme = "secondary")),
-             ),
+
   nav_panel(
       title = "Map",
       page_fillable(
@@ -90,7 +86,13 @@ ui <- page_sidebar(
     page_fillable(
       # layout_columns(
       #   col_widths = c(4, 8),
-        
+      bslib::accordion(
+        id = "value_boxes",
+        bslib::accordion_panel(
+          title = "Summaries",
+          summary_module_ui("summarizer"),
+          summary_module_ui("summarizer_compare",group = "B", theme = "secondary")),
+      ),  
       bslib::card(
           full_screen = TRUE,
           card_header("Compare Filters"),
@@ -111,12 +113,12 @@ ui <- page_sidebar(
     )
   ),
   nav_panel(
-    title = "LLM Result",
+    title = "Chat Bot",
     page_fillable(
       bslib::card(
         full_screen = TRUE,
         card_header("Chat GPT"),
-        sql_query_llm_ui("sql_query")
+        soil_chat_ui("soil_chat")
       )
       
     )
@@ -144,8 +146,8 @@ server <- function(input, output, session) {
   map_module_server("mapper",filtered_data,filtered_data2)
   summary_module_server("summarizer",filtered_data)
   summary_module_server("summarizer_compare",filtered_data2)
-  
-  sql_query_llm_server(id = "sql_query", database_path = "soil_data3.sqlite")
+
+ soil_chat_server("soil_chat", database_path = "soil_data3.sqlite") 
   
  gt_table_module_server("raw_compare_table",filtered_data, filtered_data2)
 
