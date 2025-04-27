@@ -9,6 +9,12 @@ library(ggridges)
 library(gtsummary)
 library(gt)
 library(sf)
+library(shinychat)
+library(DBI)
+library(RSQLite)
+library(ellmer)
+library(promises)
+library(future)
 
 source("compare_module_ui.R")
 source("compare_module_server.R")
@@ -20,6 +26,11 @@ source("raw_plot_module_ui.R")
 source("raw_plot_module_server.R")
 source("gt_table_module_ui.R")
 source("gt_table_module_server.R")
+source("sql_query_llm_module.R") 
+
+plan(multisession)
+
+
 
 ui <- page_sidebar(
   title = "Columbia County Soil Health",
@@ -99,6 +110,18 @@ ui <- page_sidebar(
       
     )
   ),
+  nav_panel(
+    title = "LLM Result",
+    page_fillable(
+      bslib::card(
+        full_screen = TRUE,
+        card_header("Chat GPT"),
+        sql_query_llm_ui("sql_query")
+      )
+      
+    )
+  ),
+  
 
   ))
 
@@ -111,6 +134,8 @@ server <- function(input, output, session) {
   mutate(across(c(huc8_name,hc12_name),~
                   ifelse(is.na(.x),"unknown",.x)))
   
+  db <- dbConnect(RSQLite::SQLite(), "soil_data3.sqlite")
+  
   filtered_data <- compare_module_server("original", data = soil_data3)
   filtered_data2 <- compare_module_server("compare", data = soil_data3)
   selected_param <- reactive({ input$parameter })
@@ -119,7 +144,9 @@ server <- function(input, output, session) {
   map_module_server("mapper",filtered_data,filtered_data2)
   summary_module_server("summarizer",filtered_data)
   summary_module_server("summarizer_compare",filtered_data2)
-
+  
+  sql_query_llm_server(id = "sql_query", database_path = "soil_data3.sqlite")
+  
  gt_table_module_server("raw_compare_table",filtered_data, filtered_data2)
 
   raw_plot_module_server(
