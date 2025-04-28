@@ -38,8 +38,35 @@ Rules:
       })
     }
     
+    
+    # Hide chat_ui initially
+    shinyjs::hide(id = "chat_box")
+    shinyjs::hide(id = "robot_emoji_box")
+    
+    observeEvent(input$wake_up, {
+      if (input$wake_up) {
+        shinyjs::show(id = "chat_box")
+        shinyjs::show(id = "robot_emoji_box")
+      } else {
+        shinyjs::hide(id = "chat_box")
+        shinyjs::show(id = "robot_emoji_box")
+      }
+    })
+    
+    output$robot_emoji <- renderText({
+      req(input$wake_up)
+      "🤖 Table Bot is awake!
+      Ask questions to generate tables
+      How many total records are in the soil dataset?
+      Show average pH  1:1 per huc 12 watershed
+      "
+    })
+    
     # When user submits chat input
     observeEvent(input$chat_user_input, {
+      
+      req(input$wake_up)
+      
       user_input <- input$chat_user_input
       
       chat$chat_async(paste("Generate an SQL query for:", user_input)) %...>% 

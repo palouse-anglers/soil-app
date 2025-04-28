@@ -28,7 +28,8 @@ source("gt_table_module_ui.R")
 source("gt_table_module_server.R")
 source("soil_chat_ui.R")
 source("soil_chat_server.R")
-
+source("plot_bot_ui.R")
+source("plot_bot_server.R")
 
 plan(multisession)
 
@@ -113,12 +114,23 @@ ui <- page_sidebar(
     )
   ),
   nav_panel(
-    title = "Chat Bot",
+    title = "Table Bot",
     page_fillable(
       bslib::card(
         full_screen = TRUE,
         card_header("Chat GPT"),
         soil_chat_ui("soil_chat")
+      )
+      
+    )
+  ),
+  nav_panel(
+    title = "Plot Bot",
+    page_fillable(
+      bslib::card(
+        full_screen = TRUE,
+        card_header("Chat GPT"),
+        plot_bot_ui("plotbot")
       )
       
     )
@@ -151,6 +163,8 @@ server <- function(input, output, session) {
   
  gt_table_module_server("raw_compare_table",filtered_data, filtered_data2)
 
+ plot_bot_server("plotbot",soil_data3 = soil_data3)
+ 
   raw_plot_module_server(
     id = "raw_compare_plot",
     filtered_data = filtered_data,
@@ -166,8 +180,7 @@ server <- function(input, output, session) {
       unique(filtered_data2()$parameter)
     )
     
-    print(all_params)
-    
+   
     updatePickerInput(
       session,
       inputId = "parameter",
