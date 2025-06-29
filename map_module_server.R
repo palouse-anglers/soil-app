@@ -68,7 +68,7 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
     #columbia_sf_huc_data <- geojsonsf::geojson_sf(columbia_huc12_url)
     
     
-    columbia_huc12_url <- "http://142.93.92.104:8080/geoserver/Columbia/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Columbia:all_columbia_huc_12s&outputFormat=application/json"
+    columbia_huc12_url <- "https://geoserver.megaloptera-data.com/geoserver/Columbia/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Columbia:all_columbia_huc_12s&outputFormat=application/json"
     
     columbia_sf_huc_data <- 
       sf::st_read(columbia_huc12_url, quiet = TRUE)
@@ -184,13 +184,13 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
         
         # LiDAR Overlays
         addWMSTiles(
-          "http://142.93.92.104:8080/geoserver/Columbia/wms",
+          "https://geoserver.megaloptera-data.com/geoserver/Columbia/wms",
           layers = "Columbia:full_lidar",
           options = WMSTileOptions(format = "image/png", transparent = TRUE),
           group = "lidar"
         ) %>%
         addWMSTiles(
-          "http://142.93.92.104:8080/geoserver/Columbia/wms",
+          "https://geoserver.megaloptera-data.com/geoserver/Columbia/wms",
           layers = "Columbia:full_lidar_hillshade",
           options = WMSTileOptions(format = "image/png", 
                                    transparent = TRUE, 

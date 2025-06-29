@@ -13,7 +13,7 @@ load("data/soil_data2.RData")
 
 
 # Add Watersheds to soil sample points ------------------------------------
-columbia_huc12_url <- "http://142.93.92.104:8080/geoserver/Columbia/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Columbia:all_columbia_huc_12s&outputFormat=application/json"
+columbia_huc12_url <- "https://geoserver.megaloptera-data.com/geoserver/Columbia/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Columbia:all_columbia_huc_12s&outputFormat=application/json"
 
 #https://docs.google.com/spreadsheets/d/17tCnA5fua0rBMP_vt0469ImyKHjlmDUb/edit?gid=1427031515#gid=1427031515
 
