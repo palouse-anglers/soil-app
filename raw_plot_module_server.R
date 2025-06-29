@@ -1,10 +1,8 @@
 raw_plot_module_server <- function(id, filtered_data, filtered_data2, selected_parameter) {
   moduleServer(id, function(input, output, session) {
     
-
-    
     # Create combined dataset
-
+    
       main_data <- reactive({ 
         filtered_data() %>%
         filter(parameter %in% selected_parameter()) %>%
@@ -35,7 +33,9 @@ raw_plot_module_server <- function(id, filtered_data, filtered_data2, selected_p
     # Plot for filtered_data()
       output$plot1 <- renderPlotly({
         
-        req(main_data())
+        validate(need(length(selected_parameter()) > 0, "Select a parameter."))
+        validate(need(nrow(filtered_data()) > 0, "Select data for Group A"))
+        validate(need(nrow(main_data()) > 0, "Group A has no data for the selected parameter."))
         
         if (input$plot_type == "dot") {
           p <- ggplot(main_data(),
@@ -138,7 +138,9 @@ raw_plot_module_server <- function(id, filtered_data, filtered_data2, selected_p
     # Plot for filtered_data2()
       output$plot2 <- renderPlotly({
         
-        req(compare_data())
+        validate(need(length(selected_parameter()) > 0, "Select a parameter."))
+        validate(need(nrow(filtered_data2()) > 0, "Select data for Group B"))
+        validate(need(nrow(compare_data()) > 0, "Group A has no data for the selected parameter."))
         
         if (input$plot_type == "dot") {
           p <- ggplot(compare_data(),
@@ -240,7 +242,12 @@ raw_plot_module_server <- function(id, filtered_data, filtered_data2, selected_p
       })
       
           output$plot3 <- renderPlotly({
-          req(main_data(), compare_data())
+            
+            validate(need(length(selected_parameter()) > 0, "Select a parameter."))
+            validate(need(nrow(filtered_data()) > 0, "Select data for Group A"))
+            validate(need(nrow(main_data()) > 0, "Group A has no data for the selected parameter."))
+            validate(need(nrow(filtered_data2()) > 0, "Select data for Group B"))
+            validate(need(nrow(compare_data()) > 0, "Group A has no data for the selected parameter."))
           
           slope_data <- main_data() %>%
             group_by(parameter) %>%
@@ -274,7 +281,11 @@ raw_plot_module_server <- function(id, filtered_data, filtered_data2, selected_p
         })
       
           output$plot4 <- renderPlotly({
-            req(main_data(), compare_data())
+            validate(need(length(selected_parameter()) > 0, "Select a parameter."))
+            validate(need(nrow(filtered_data()) > 0, "Select data for Group A"))
+            validate(need(nrow(main_data()) > 0, "Group A has no data for the selected parameter."))
+            validate(need(nrow(filtered_data2()) > 0, "Select data for Group B"))
+            validate(need(nrow(compare_data()) > 0, "Group A has no data for the selected parameter."))
             
       # Step 1: Summarize data
             slope_data <- main_data() %>%
