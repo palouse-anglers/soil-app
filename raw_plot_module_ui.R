@@ -18,14 +18,14 @@ raw_plot_module_ui <- function(id) {
         width = 6,
         card(full_screen = T,
           card_header("Group A"),
-          card_body(plotlyOutput(ns("plot1")))
+          card_body(plotlyOutput(ns("group_a_plots")))
         )
       ),
       column(
         width = 6,
         card(full_screen = T,
           card_header("Group B"),
-          card_body(plotlyOutput(ns("plot2")))
+          card_body(plotlyOutput(ns("group_b_plots")))
         )
       )
     ),
@@ -34,7 +34,7 @@ raw_plot_module_ui <- function(id) {
         width = 12,
         card(full_screen = T,
              card_header("Slope Means"),
-             card_body(plotlyOutput(ns("plot3")))
+             card_body(plotlyOutput(ns("slope_means_plots")))
         )
       )
       
@@ -44,7 +44,7 @@ raw_plot_module_ui <- function(id) {
         width = 12,
         card(full_screen = T,
              card_header("Heat Means"),
-             card_body(plotlyOutput(ns("plot4")))
+             card_body(plotlyOutput(ns("heat_means_plots")))
         )
       )
       

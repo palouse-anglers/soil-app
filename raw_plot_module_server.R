@@ -32,7 +32,7 @@ raw_plot_module_server <- function(id, filtered_data, filtered_data2, selected_p
 
     
     # Plot for filtered_data()
-      output$plot1 <- renderPlotly({
+      output$group_a_plots <- renderPlotly({
         
         validate(need(length(selected_parameter_d()) > 0, "Select a parameter."))
         validate(need(nrow(filtered_data()) > 0, "Select data for Group A"))
@@ -137,7 +137,7 @@ raw_plot_module_server <- function(id, filtered_data, filtered_data2, selected_p
       
     
     # Plot for filtered_data2()
-      output$plot2 <- renderPlotly({
+      output$group_b_plots <- renderPlotly({
         
         validate(need(length(selected_parameter_d()) > 0, "Select a parameter."))
         validate(need(nrow(filtered_data2()) > 0, "Select data for Group B"))
@@ -242,7 +242,7 @@ raw_plot_module_server <- function(id, filtered_data, filtered_data2, selected_p
         
       })
       
-          output$plot3 <- renderPlotly({
+          output$slope_means_plots <- renderPlotly({
             
             validate(need(length(selected_parameter_d()) > 0, "Select a parameter."))
             validate(need(nrow(filtered_data()) > 0, "Select data for Group A"))
@@ -281,7 +281,7 @@ raw_plot_module_server <- function(id, filtered_data, filtered_data2, selected_p
           ggplotly(p, tooltip = "text")
         })
       
-          output$plot4 <- renderPlotly({
+          output$heat_means_plots <- renderPlotly({
             validate(need(length(selected_parameter_d()) > 0, "Select a parameter."))
             validate(need(nrow(filtered_data()) > 0, "Select data for Group A"))
             validate(need(nrow(main_data()) > 0, "Group A has no data for the selected parameter."))
