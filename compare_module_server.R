@@ -207,8 +207,9 @@ compare_module_server <- function(id, data) {
     #   })
     # 
     
+    filtered_data_d <- filtered_data %>% debounce(1000)
     
-    return(filtered_data)
+    return(filtered_data_d)
     
    })
 }
