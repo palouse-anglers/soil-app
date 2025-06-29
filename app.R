@@ -96,7 +96,7 @@ ui <- page_sidebar(
       ),  
       bslib::card(
           full_screen = TRUE,
-          card_header("Compare Filters"),
+          card_header("Compare Groups"),
           raw_plot_module_ui("raw_compare_plot")
         )
   
