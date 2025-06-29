@@ -73,10 +73,11 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
     columbia_sf_huc_data <- 
       sf::st_read(columbia_huc12_url, quiet = TRUE)
   
-    
+    hc12_variable_name <- str_subset(names(columbia_sf_huc_data), "hc12.*n.*m")[1]
+    hc8_variable_name <- str_subset(names(columbia_sf_huc_data), "hu?c8.*n.*m")[1]
     labels <- paste(
-      "<strong>", columbia_sf_huc_data$hc12_name, "</strong><br>",
-      "<span style='font-size: 10px;'>", columbia_sf_huc_data$huc8_name, "</span>"
+      "<strong>", columbia_sf_huc_data[[hc12_variable_name]], "</strong><br>",
+      "<span style='font-size: 10px;'>", columbia_sf_huc_data[[hc8_variable_name]], "</span>"
     ) %>%
       lapply(htmltools::HTML)
     
