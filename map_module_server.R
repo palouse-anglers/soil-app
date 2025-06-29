@@ -192,7 +192,10 @@ map_module_server <- function(id,filtered_data, filtered_data2) {
         addWMSTiles(
           "http://142.93.92.104:8080/geoserver/Columbia/wms",
           layers = "Columbia:full_lidar_hillshade",
-          options = WMSTileOptions(format = "image/png", transparent = TRUE),
+          options = WMSTileOptions(format = "image/png", 
+                                   transparent = TRUE, 
+                                   version = "1.1.0",
+                                   crs = leafletCRS(crsClass = "L.CRS.EPSG3857")),
           group = "hillshade"
         ) %>%
         
